@@ -15,6 +15,10 @@ from tkinter import filedialog
 import time
 import datetime
 
+### Used in Capital Gains Audit
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 """ Overall Ideas::
 1. Add in Performance net of Fees program to adjust returns based on value of portfolio.
 2. Produce ReportGenerator output in Tkinter window. Allow for a save button.
@@ -621,7 +625,7 @@ class BWMCommandCenterApp(tk.Tk):
         self.frames = {}
 
         # All pages need to be listed here
-        for F in (StartPage, GraphPageHome, InitialInfoInput, QuarterlyBilling): # Need to add ReviewPage back in once I complete it.
+        for F in (StartPage, GraphPageHome, InitialInfoInput, QuarterlyBilling, CapitalGainsAudit): # Need to add ReviewPage back in once I complete it.
 
             frame = F(container, self)
 
@@ -693,6 +697,15 @@ class StartPage(tk.Frame):
         button3Frame.rowconfigure(0, weight = 1)
         button3Frame.place(x=-350, y = 0, relx = .5, relheight = .2)
         button3.grid(sticky='wens')
+
+        button4Frame = tk.Frame(self, width = 150, height = 150)
+        button4 = tk.Button(button4Frame, text='Capital Gains',
+                            command = lambda: controller.show_frame(CapitalGainsAudit), bg = '#0b0ea3', foreground = 'white', relief = tk.GROOVE)
+        button4Frame.grid_propagate(False)
+        button4Frame.columnconfigure(0, weight = 1)
+        button4Frame.rowconfigure(0, weight = 1)
+        button4Frame.place(x=-200, y = 0, relx = .5, relheight = .2)
+        button4.grid(sticky='wens')
 
 class GraphPageHome(tk.Frame):
 
@@ -1481,6 +1494,174 @@ class QuarterlyBilling(tk.Frame):
         output['yscrollcommand'] = scroll.set
 
 
+class CapitalGainsAudit(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        self.models = {'NS Med-Low': 'NS MEDIUM LOW',
+                  'Med-Low': 'MEDIUM LOW',
+                  'TE Growth': 'TE GROWTH',
+                  'Medium': 'MEDIUM',
+                  'NS Low': 'NS LOW',
+                  'NS High': 'NS HIGH',
+                  'TE Select': 'TE SELECT',
+                  'Low': 'LOW',
+                  'Med-High': 'MEDIUM HIGH',
+                  'Income w Gwth': 'INCOME WITH GROWTH',
+                  '70/30': 'INVALID ASSIGNMENT (MODEL CONFLICT)',
+                  'Aggr G&I': 'AGGR G&I'}
+
+        symbolVar = tk.StringVar()
+        dateVar = tk.StringVar()
+        self.completeAudit = None
+
+        def get_files():
+            try:
+                self.accounts = filedialog.askopenfilename(initialdir = "/", title = "Select WC All Accounts File")
+                self.gains = filedialog.askopenfilename(initialdir = "/", title = "Select WC Profit and Loss File")
+
+                runAuditButton.configure(state = 'active')
+                runAuditButton.update()
+            except:
+                messagebox.showwarning("Error", "There was an error with one of the input files.")
+
+        def runAudit():
+            try:
+                accounts = pd.read_csv(self.accounts)
+                gains = pd.read_csv(self.gains, thousands = ",")
+                Symbol = symbolInput.get()
+                tradeDate = tradeDateInput.get()
+
+                ### Input trade date to avoid issues running the report early.
+                tradeDate = datetime.strptime(tradeDate,'%m/%d/%Y')
+                longTermDate = tradeDate - relativedelta(years = 1)
+
+                models = [self.models[modelSelection.get(idx)] for idx in modelSelection.curselection()]
+
+                gains.columns = gains[4:5].values.tolist()
+                gains = gains[5:].reset_index(drop=True)
+
+                ### Retains only clients that are included in the models that will be trading.
+                accounts = accounts[accounts["Account Tax Status"] == "TAXABLE"]
+                accounts['InModel'] = accounts["Model Name"].apply(lambda x: "True" if x in models else "False")
+                accounts = accounts[accounts["InModel"] == "True"].reset_index(drop = True)
+                accounts = accounts.copy()
+
+                ### Cleans up dataframe and converts strings to ints where needed.
+                gains["Account #"].apply(str)
+                gains.dropna(inplace=True)
+                gains["Account #"] = gains["Account #"].apply(lambda x: x.replace("-",""))
+                gains["Gain/Loss"] = gains["Gain/Loss"].apply(lambda x: "0" if x == "--" else x)
+                gains["Gain/Loss"] = gains["Gain/Loss"].apply(lambda x: x.replace(",","")).apply(float)
+                gains["Closing Quantity"] = gains["Closing Quantity"].apply(lambda x: x.replace(",","")).apply(float)
+                gains["Date Acquired"] = gains["Date Acquired"].apply(lambda x: datetime.strptime(x,'%m/%d/%Y'))
+                gains["Holding Period"] = gains["Date Acquired"].apply(lambda x: "Long" if x < longTermDate else "Short")
+                gains = gains.copy()
+
+                stGains = []
+
+
+                stShares = []
+                ltGains = []
+                ltShares = []
+                buyDates = []
+                longTermDates = []
+
+                ### The loop that calculates all gain information for each client.
+                for account in range(0, len(accounts.index.values)):
+                    accountNumber = accounts.loc[account,"Account #"]
+                    accountStGain = 0
+                    accountStShares = 0
+                    accountLtGain = 0
+                    accountLtShares = 0
+                    accountBuyDates = []
+                    firstBuyDate = []
+                    accountGains = gains[(gains["Account #"] == accountNumber) & (gains["Symbol"] == Symbol)].reset_index(drop=True).copy()
+                    for i in range(0, len(accountGains.index.values)):
+                        if accountGains.loc[i,"Holding Period"] == "Short":
+                            accountStGain += accountGains.loc[i,"Gain/Loss"]
+                            accountStShares += accountGains.loc[i,"Closing Quantity"]
+                            dt = accountGains.loc[i,"Date Acquired"]
+                            accountBuyDates.append("{}/{}/{} bought {} shares".format(dt.month,dt.day,dt.year,accountGains.loc[i,"Closing Quantity"]))
+                            firstBuyDate.append(dt)
+                        elif accountGains.loc[i,"Holding Period"] == "Long":
+                            accountLtGain += accountGains.loc[i,"Gain/Loss"]
+                            accountLtShares += accountGains.loc[i,"Closing Quantity"]
+                        else:
+                            stGains.append(0)
+                            stShares.append(0)
+                            ltGains.append(0)
+                            ltShares.append(0)
+                            buyDates.append(0)
+                            print("{} does not own".format(accounts.loc[account,"Primary Account Holder"]))
+                    stGains.append(accountStGain)
+                    stShares.append(accountStShares)
+                    ltGains.append(accountLtGain)
+                    ltShares.append(accountLtShares)
+                    buyDates.append(accountBuyDates)
+                    if len(firstBuyDate) > 0:
+                        print("Min date {} for {}".format(min(firstBuyDate) + relativedelta(years=1),accountNumber))
+                        ltDate = min(firstBuyDate) + relativedelta(years=1)
+                        longTermDates.append("{}/{}/{}".format(ltDate.month,ltDate.day,ltDate.year))
+                    else:
+                        longTermDates.append(0)
+
+
+                accounts["ShortTermGains"] = stGains
+                accounts["ShortShares"] = stShares
+                accounts["LongTermGains"] = ltGains
+                accounts["LongShares"] = ltShares
+                accounts["BuyDates"] = buyDates
+                accounts["FirstLongTermDate"] = longTermDates
+
+                accounts["TotalShares"] = accounts["ShortShares"] + accounts["LongShares"]
+                accounts["ShortShare%"] = accounts["ShortShares"]/accounts["TotalShares"] * 100
+                accounts = accounts[["Account #","Primary Account Holder","Account Tax Status", "Total Account Value", "Model Name", "ShortTermGains",
+                                     "ShortShares", "LongTermGains", "LongShares", "BuyDates","TotalShares","ShortShare%","FirstLongTermDate"]]
+
+                self.completeAudit = accounts
+                exportAuditButton.configure(state = "active")
+                exportAuditButton.update()
+
+            except:
+                messagebox.showwarning("Error", "There was an error with the Audit. Double Check your inputs and try again")
+
+        def exportExcel():
+            fileName = filedialog.asksaveasfile(mode='w', defaultextension='.csv')
+            self.completeAudit.to_csv(fileName, index = False)
+
+
+        backHomeButton = ttk.Button(self, text="Back to Home", width = 17, command=lambda: controller.show_frame(StartPage))
+        backHomeButton.pack()
+
+        importFilesButton = ttk.Button(self, text = "Import Files", command=get_files)
+        importFilesButton.pack()
+
+        modelSelection = tk.Listbox(self, selectmode="multiple")
+
+        listIndex = 0
+        for key in self.models:
+            modelSelection.insert(listIndex, key)
+            listIndex += 1
+
+        modelSelection.pack()
+
+        symbolLabel = ttk.Label(self, text = "Enter in Symbol to be Traded: ")
+        symbolInput = ttk.Entry(self, textvariable = symbolVar)
+        symbolLabel.pack()
+        symbolInput.pack()
+
+        tradeDateLabel = ttk.Label(self, text = "Enter Trade Date (MM/DD/YYYY): ")
+        tradeDateInput = ttk.Entry(self, textvariable = dateVar)
+        tradeDateLabel.pack()
+        tradeDateInput.pack()
+
+        runAuditButton = ttk.Button(self, text = "Run Billing", command = runAudit, state = 'disabled')
+        runAuditButton.pack()
+
+        exportAuditButton = ttk.Button(self, text = "Export Audit CSV", command = exportExcel, state = 'disabled')
+        exportAuditButton.pack()
 
 
 

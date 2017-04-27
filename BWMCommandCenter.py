@@ -700,7 +700,7 @@ class StartPage(tk.Frame):
 
         button4Frame = tk.Frame(self, width = 150, height = 150)
         button4 = tk.Button(button4Frame, text='Capital Gains',
-                            command = lambda: controller.show_frame(CapitalGainsAudit), bg = '#0b0ea3', foreground = 'white', relief = tk.GROOVE)
+                            command = lambda: controller.show_frame(CapitalGainsAudit), bg = '#c1bb64', foreground = 'white', relief = tk.GROOVE)
         button4Frame.grid_propagate(False)
         button4Frame.columnconfigure(0, weight = 1)
         button4Frame.rowconfigure(0, weight = 1)
@@ -782,45 +782,9 @@ class GraphPageHome(tk.Frame):
 
 class InitialInfoInput(tk.Frame):
 
-    #self.isCouple = None
-    #self.cashNeededStart = None
-    #self.howManyAccounts = None
-    #self.yearsTilRetirement = []
-    #self.inflation = None
-    #self.incomeTaxRate = 0
-    #self.capitalGainsTaxRate = 0
-    #self.name1 = None
-    #self.age1 = None
-    #self.name2 = None
-    #self.age2 = None
-    #self.names = []
-    #self.ages = []
-    #howManyAccounts = None
-
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
-        #review = ReviewPage
-        #self.isCouple = None
-        #self.cashNeededStart = None
-        #self.howManyAccounts = None
-        #self.yearsTilRetirement = []
-        #self.inflation = None
-        #self.incomeTaxRate = 0
-        #self.capitalGainsTaxRate = 0
-        #self.name1 = None
-        #self.age1 = None
-        #self.name2 = None
-        #self.age2 = None
-        #self.names = []
-        #self.ages = []
-        #howManyAccounts = None
-        #self.ownerAnswers = []
-        #self.listOfAccounts = []
-        #self.accountModels = []
-        #self.accountTypes = []
-        #self.accountValues = []
 
         # Initialize the isCouple Variable
         isCoupleVar = tk.StringVar()

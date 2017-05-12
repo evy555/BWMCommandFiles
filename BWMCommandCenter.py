@@ -19,58 +19,7 @@ import datetime
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-""" Overall Ideas::
-1. Add in Performance net of Fees program to adjust returns based on value of portfolio.
-2. Produce ReportGenerator output in Tkinter window. Allow for a save button.
-3. Print out all input information into a window that allows the user to confirm if the info is correct
-   A. Eventually make it a one page window that will allow you to dynamically change info without having to go through all the steps.
-4. Make program into .exe file.
-5. Make it a web application.
-6. Put Tkinter in it's own class to organize code.
-7. Allow input of state and gross income to create a dynamic income tax rate.
-8. Savings account is currently only allowed 1 account. Probably should allow for more than one savings accounts.
-9. Make a single GUI that contains buttons for every input section. Once Submit is clicked it still remains open. Then a button when clicked shows the report that was run in a new window with a save button.
-   Maybe hide buttons when information is not clicked yet (i.e. no names input yet, so button that allows age input is not available. This will allow for easier UI that can be dynamically changed (ie switching between 1 year til retirmenent and 7
-   will be much easier. Submit could always be find best portfolio, or create a second custom portfolio draw order option. radio buttons that allow user to select number.
-10.Make a BWM Command Center GUI. This portfolio Projection will be one component of the command center. Another could be calculate avg.fee. Third could be the quarterly fee trade generator. Just requires specific input. Could come up with many options
-11.Add in a Social Security calculator for income."""
 
-""" Simulator improvement:
-1. Allow for entry of pension information."""
-
-"""2/13/2017 - 2/17/2017 All input sections complete in the GUI. Now I need to create the modeling into a Class that is evaluated in the background.
- After that I will create a tkinter that shows the matplotlib plots and information. I will add a save file button. The save file should save
- the following: csv for DataFrame values, and a pdf of the output."""
-
-"""2/17/2017 GUI is producing the correct output and creating the correct dataFrame. Next step is to add in all models for performance. Maybe only grab the ones
-that go back far enough and then adjust the radiobutton options accordingly. Next major process will be to create the simulator into a class. Cleanup the input it needs
-and then go through every step to correct the variables it will need.
-1. Add in models for performance into Returns csv.
-2. Adjust radio buttons to match available models.
-3. Make the simulator a class.
-4. Clean up simulator input requirements.
-5. Replace all areas that need new variables."""
-
-"""2/21/2017 Model simulator is now a class. The findbestportfolio is now a function of that class. First run with my personal information worked. Need to audit this with Tillman data. Allow for the
-pension section to be available or else numbers won't match. Once I make sure it is producing good information I can move onto the report class, with the hopes of having it show in a GUI."""
-
-"""2/27/2017 I've finished the initial information page. I am able to grab all variables needed for the model now. To allow for the variables to be used throughout the program I had to create a dictionary in the
-BWMCommandCenterApp() class tying it to the controller that is passed to all classes. The input page can still be improved to allow better useability, but for now it works. Next step is to create the run projection
-page that will show a printout of all information that was input. Then the user will have the option to run the report. I'd like to have a pop-up that shows how close it is to being complete. One it finishes it will take you
-directly to the graphs page, which will be updated upon completion. """
-
-"""2/28/2017 I've ccnnected the input to the model. I skipped making a detailed information review page. This is something I can complete once the first pass of the program is complete. The next and final step for the functionality will
-be to update the graphs from the model. Once this is complete I can make it into a .exe file to see if it works. """
-
-"""3/1/2017 Everything is complete for the first go at the program. Before going live I will need to test the results to make sure they are correct. Now it's time to make it a .exe"""
-
-"""3/2/2017-3/14/2017 Created the .exe and took a break from the project to focus on investment research."""
-
-"""3/15/2017 I've made some minor edits to various text in the program. I added the final value annotations to the total portfolio and individual account graphs.
-This will make it easier to read the number on the graph. I created new returns using an NYU spreadsheet tracking the historical performance of the S&P500
-and the 10 year TBill. These are used to create various stock/bond portfolios. These are the furthest stretching returns I could find. Finally I've added in
-the initial functionality for contributions. I will need to improve these so that they stop when you retire, and they also account for inocme issues with IRA
-contributions."""
 
 
 class dataframeCreation():

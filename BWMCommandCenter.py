@@ -882,14 +882,14 @@ class InitialInfoInput(tk.Frame):
                 nameLabel = tk.Label(accountInfo, text = 'Name for account {}'.format(i+1))
                 nameLabel.grid(row = rowNumber, column = 0)
                 nameV = tk.StringVar()
-                e = tk.Entry(accountInfo, textvariable = nameV)
+                e = tk.Entry(accountInfo, textvariable = nameV, width = 15)
                 e.grid(row = rowNumber, column = 1)
                 self.listOfAccounts.append(nameV)
 
                 modelLabel = tk.Label(accountInfo,text = 'Strategy: ')
                 modelLabel.grid(row = rowNumber, column = 2)
                 modelV = tk.StringVar()
-                modeldropDown = ttk.Combobox(accountInfo, textvariable = modelV, state = 'readonly')
+                modeldropDown = ttk.Combobox(accountInfo, textvariable = modelV, state = 'readonly', width=18)
                 modeldropDown['values'] = modelOptions
                 modeldropDown.grid(row = rowNumber, column = 3)
                 self.accountModels.append(modelV)
@@ -897,7 +897,7 @@ class InitialInfoInput(tk.Frame):
                 typeLabel = tk.Label(accountInfo, text = 'Type: ')
                 typeLabel.grid(row = rowNumber, column = 4)
                 typeV = tk.StringVar()
-                typeDropDown = ttk.Combobox(accountInfo, textvariable = typeV, state = 'readonly')
+                typeDropDown = ttk.Combobox(accountInfo, textvariable = typeV, state = 'readonly', width=19)
                 typeDropDown['values'] = accountTypeOptions
                 typeDropDown.grid(row = rowNumber, column = 5)
                 self.accountTypes.append(typeV)
@@ -905,14 +905,14 @@ class InitialInfoInput(tk.Frame):
                 valueLabel = tk.Label(accountInfo, text = 'Value: ')
                 valueLabel.grid(row = rowNumber, column = 6)
                 valueV = tk.DoubleVar()
-                valueEntry = tk.Spinbox(accountInfo, textvariable = valueV, from_=0.00, to=10000000000, increment=1000)
+                valueEntry = tk.Spinbox(accountInfo, textvariable = valueV, from_=0.00, to=10000000000, increment=1000, width=9)
                 valueEntry.grid(row = rowNumber, column = 7)
                 self.accountValues.append(valueV)
 
                 contribLabel = tk.Label(accountInfo, text = 'Annual Contribution: ')
                 contribLabel.grid(row = rowNumber, column = 8)
                 contribV = tk.DoubleVar()
-                contribEntry = tk.Spinbox(accountInfo, textvariable = contribV, from_=0.00, to=10000000000, increment=1000)
+                contribEntry = tk.Spinbox(accountInfo, textvariable = contribV, from_=0.00, to=10000000000, increment=1000, width=8)
                 contribEntry.grid(row = rowNumber, column = 9)
                 self.contribValues.append(contribV)
 
@@ -921,7 +921,7 @@ class InitialInfoInput(tk.Frame):
                         ownerLabel = tk.Label(accountInfo,text = 'Account Owner: ')
                         ownerLabel.grid(row = rowNumber, column = 10)
                         ownerV = tk.StringVar()
-                        ownerDropDown = ttk.Combobox(accountInfo, textvariable = ownerV, state = 'readonly')
+                        ownerDropDown = ttk.Combobox(accountInfo, textvariable = ownerV, state = 'readonly', width = 10)
                         ownerDropDown['values'] = ownerDropDownOptions
                         ownerDropDown.grid(row = rowNumber, column = 11)
                         self.accountOwners.append(ownerV)
@@ -936,13 +936,6 @@ class InitialInfoInput(tk.Frame):
 
             runModelButton.configure(state = 'enabled')
             runModelButton.update()
-
-
-
-
-
-
-
 
 
         def getAccountInfo():

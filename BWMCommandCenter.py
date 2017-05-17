@@ -14,6 +14,7 @@ from PIL import Image, ImageTk
 from tkinter import filedialog
 import time
 import datetime
+import traceback
 
 ### Used in Capital Gains Audit
 from datetime import datetime
@@ -1422,7 +1423,9 @@ class CapitalGainsAudit(tk.Frame):
         dateVar = tk.StringVar()
         self.completeAudit = None
 
+
         def get_files():
+            messagebox.showinfo("Directions", "The files from WC are required:\n-All Accounts Summary\n-Profit and Loss Details - Unrealized360")
             try:
                 self.accounts = filedialog.askopenfilename(initialdir = "/", title = "Select WC All Accounts File")
                 self.gains = filedialog.askopenfilename(initialdir = "/", title = "Select WC Profit and Loss File")
@@ -1436,6 +1439,7 @@ class CapitalGainsAudit(tk.Frame):
             try:
                 accounts = pd.read_csv(self.accounts)
                 gains = pd.read_csv(self.gains, thousands = ",")
+
                 Symbol = symbolInput.get()
                 tradeDate = tradeDateInput.get()
 
@@ -1445,8 +1449,7 @@ class CapitalGainsAudit(tk.Frame):
 
                 models = [self.models[modelSelection.get(idx)] for idx in modelSelection.curselection()]
 
-                gains.columns = gains[4:5].values.tolist()
-                gains = gains[5:].reset_index(drop=True)
+                print(gains.columns)
 
                 ### Retains only clients that are included in the models that will be trading.
                 accounts = accounts[accounts["Account Tax Status"] == "TAXABLE"]
@@ -1455,12 +1458,11 @@ class CapitalGainsAudit(tk.Frame):
                 accounts = accounts.copy()
 
                 ### Cleans up dataframe and converts strings to ints where needed.
+                gains.to_csv("test.csv",index=False)
+                print("gains columns {}".format(gains.columns))
                 gains["Account #"].apply(str)
                 gains.dropna(inplace=True)
                 gains["Account #"] = gains["Account #"].apply(lambda x: x.replace("-",""))
-                gains["Gain/Loss"] = gains["Gain/Loss"].apply(lambda x: "0" if x == "--" else x)
-                gains["Gain/Loss"] = gains["Gain/Loss"].apply(lambda x: x.replace(",","")).apply(float)
-                gains["Closing Quantity"] = gains["Closing Quantity"].apply(lambda x: x.replace(",","")).apply(float)
                 gains["Date Acquired"] = gains["Date Acquired"].apply(lambda x: datetime.strptime(x,'%m/%d/%Y'))
                 gains["Holding Period"] = gains["Date Acquired"].apply(lambda x: "Long" if x < longTermDate else "Short")
                 gains = gains.copy()
@@ -1483,7 +1485,7 @@ class CapitalGainsAudit(tk.Frame):
                     accountLtShares = 0
                     accountBuyDates = []
                     firstBuyDate = []
-                    accountGains = gains[(gains["Account #"] == accountNumber) & (gains["Symbol"] == Symbol)].reset_index(drop=True).copy()
+                    accountGains = gains[(gains["Account #"] == accountNumber) & (gains["Security ID"] == Symbol)].reset_index(drop=True).copy()
                     for i in range(0, len(accountGains.index.values)):
                         if accountGains.loc[i,"Holding Period"] == "Short":
                             accountStGain += accountGains.loc[i,"Gain/Loss"]
@@ -1530,8 +1532,10 @@ class CapitalGainsAudit(tk.Frame):
                 exportAuditButton.configure(state = "active")
                 exportAuditButton.update()
 
-            except:
+            except Exception as e:
                 messagebox.showwarning("Error", "There was an error with the Audit. Double Check your inputs and try again")
+                print(e)
+                traceback.print_exc()
 
         def exportExcel():
             fileName = filedialog.asksaveasfile(mode='w', defaultextension='.csv')
